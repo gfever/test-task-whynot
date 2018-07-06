@@ -7,6 +7,10 @@ use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
     /**
      * Display a listing of the resource.
      *
@@ -14,8 +18,18 @@ class PostController extends Controller
      */
     public function index()
     {
-        $posts = resolve(Post::class)->paginate(10);
-        return view('post.index', ['posts' => $posts]);
+        $posts = resolve(Post::class);
+        if (!\Auth::user()->isAdmin()) {
+            $posts = $posts->where('published', '=', true);
+        }
+
+        return view('post.index', ['posts' => $posts->paginate(10), 'page' => 'main']);
+    }
+
+    public function userIndex()
+    {
+        $posts = \Auth::user()->posts()->paginate(10);
+        return view('post.index', ['posts' => $posts, 'page' => 'user']);
     }
 
     /**
@@ -37,11 +51,14 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'bail|required|unique:posts|max:255',
+            'title' => 'bail|required|max:255',
             'body' => 'required',
         ]);
 
-        resolve(Post::class)->create($request->toArray());
+        $data = $request->toArray();
+        $data['user_id'] = \Auth::id();
+        resolve(Post::class)->create($data);
+        return redirect()->action('PostController@userIndex');
     }
 
     /**
@@ -49,10 +66,12 @@ class PostController extends Controller
      *
      * @param  \App\Models\Post  $post
      * @return \Illuminate\Http\Response
+     * @throws \Exception
      */
     public function show(Post $post)
     {
-        //
+        $this->authorize('view', $post);
+        return view('post.show', ['post' => $post]);
     }
 
     /**
@@ -60,9 +79,11 @@ class PostController extends Controller
      *
      * @param  \App\Models\Post  $post
      * @return \Illuminate\Http\Response
+     * @throws \Exception
      */
     public function edit(Post $post)
     {
+        $this->authorize('update', $post);
         return view('post.edit', ['post' => $post]);
     }
 
@@ -72,14 +93,19 @@ class PostController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Post  $post
      * @return \Illuminate\Http\Response
+     * @throws \Exception
      */
     public function update(Request $request, Post $post)
     {
+        $this->authorize('update', $post);
+
         $request->validate([
-            'title' => 'bail|unique:posts|max:255'
+            'title' => 'bail|string|max:255',
+            'body' => 'string'
         ]);
 
-        $post->update($request->toArray());
+        $post->update($request->except('user_id'));
+        return back();
     }
 
     /**
@@ -87,9 +113,28 @@ class PostController extends Controller
      *
      * @param  \App\Models\Post  $post
      * @return \Illuminate\Http\Response
+     * @throws \Exception
      */
     public function destroy(Post $post)
     {
-        //
+        $this->authorize('delete', $post);
+        $post->delete();
+
+        return back();
+    }
+
+    /**
+     * @param Post $post
+     * @return \Illuminate\Http\Response
+     * @throws \Exception
+     */
+    public function publishToggle(Post $post)
+    {
+        $this->authorize('publish', $post);
+
+        $post->published = !$post->published;
+        $post->save();
+
+        return back();
     }
 }

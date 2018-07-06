@@ -7,8 +7,8 @@
                     <div class="panel-heading">Edit post</div>
 
                     <div class="panel-body">
-                        <form action="{{action('PostController@update')}}" method="PUT">
-
+                        <form action="{{action('PostController@update', $post->id)}}" method="post">
+                            <input type="hidden" name="_method" value="PUT"/>
                             <input type="hidden" name="_token" value="{{ csrf_token() }}"/>
 
                             <p>
@@ -24,7 +24,7 @@
                             <hr/>
 
                             <p>
-                                <button class="btn btn-success form-control">Edit Post</button>
+                                <input type="submit" class="btn btn-success form-control" value="Edit Post"/>
                             </p>
 
                         </form>

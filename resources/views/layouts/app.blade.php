@@ -53,6 +53,12 @@
 
                                 <ul class="dropdown-menu">
                                     <li>
+                                        <a href="{{action('PostController@userIndex')}}">My posts</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{action('PostController@create')}}">Create post</a>
+                                    </li>
+                                    <li>
                                         <a href="{{ route('logout') }}"
                                             onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">
@@ -71,6 +77,15 @@
             </div>
         </nav>
 
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
         @yield('content')
     </div>
 

@@ -11,10 +11,11 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', 'PostController@index');
 
 Auth::routes();
 Route::resource('posts', 'PostController');
-Route::get('/home', 'HomeController@index')->name('home');
+/** @see \App\Http\Controllers\PostController::userIndex() */
+Route::get('/my/posts', 'PostController@userIndex');
+/** @see \App\Http\Controllers\PostController::publishToggle() */
+Route::post('/posts/{post}/publishToggle', 'PostController@publishToggle');

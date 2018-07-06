@@ -10,10 +10,17 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
  * @package App\Models
  *
  * @property-read integer $id
+ * @property string $role
+ * @property string $email
+ * @property string $name
+ * @property string $password
  */
 class User extends Authenticatable
 {
     use Notifiable;
+
+    const ROLE_ADMIN = 'admin';
+    const ROLE_USER = 'user';
 
     /**
      * The attributes that are mass assignable.
@@ -36,5 +43,13 @@ class User extends Authenticatable
     public function posts()
     {
         return $this->hasMany(Post::class);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === self::ROLE_ADMIN;
     }
 }
